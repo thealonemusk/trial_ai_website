@@ -26,9 +26,12 @@ export default function SignUpForm() {
     e.preventDefault();
     try {
       await signUp(email, password, fullName);
-      navigate("/login");
+      navigate("/leave/dashboard");
     } catch (error) {
-      setError("Error creating account");
+      console.error("Signup error:", error);
+      setError(
+        error instanceof Error ? error.message : "Error creating account",
+      );
     }
   };
 

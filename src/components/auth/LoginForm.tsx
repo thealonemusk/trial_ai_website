@@ -25,9 +25,12 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       await signIn(email, password);
-      navigate("/");
+      navigate("/leave/dashboard");
     } catch (error) {
-      setError("Invalid email or password");
+      console.error("Login error:", error);
+      setError(
+        error instanceof Error ? error.message : "Invalid email or password",
+      );
     }
   };
 

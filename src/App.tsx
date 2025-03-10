@@ -6,6 +6,7 @@ import SignUpForm from "./components/auth/SignUpForm";
 import Dashboard from "./components/pages/dashboard";
 import Success from "./components/pages/success";
 import Home from "./components/pages/home";
+import AdminInfo from "./components/pages/admin-info";
 import { AuthProvider, useAuth } from "../supabase/auth";
 
 // Leave Management Pages
@@ -22,7 +23,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (!user) {
-    return <Navigate to="/" />;
+    return <Navigate to="/login" />;
   }
 
   return <>{children}</>;
@@ -35,6 +36,7 @@ function AppRoutes() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<LoginForm />} />
         <Route path="/signup" element={<SignUpForm />} />
+        <Route path="/admin-info" element={<AdminInfo />} />
         <Route
           path="/dashboard"
           element={
