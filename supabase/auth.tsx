@@ -6,6 +6,7 @@ type AuthContextType = {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signUp: (email: string, password: string, fullName: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -35,21 +36,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+          emailRedirectTo: `${window.location.origin}/leave/dashboard`,
         },
-      },
-    });
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    // Auto sign in after signup
-    if (data.user) {
-      await signIn(email, password);
+      // Create user profile manually if needed
+      if (data.user) {
+        const { error: profileError } = await supabase.from("profiles").upsert([
+          {
+            id: data.user.id,
+            full_name: fullName,
+            email: email,
+          },
+        ]);
+
+        if (profileError)
+          console.error("Profile creation error:", profileError);
+
+        // Auto sign in after signup
+        await signIn(email, password);
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      throw error;
     }
   };
 
@@ -61,13 +80,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error) throw error;
   };
 
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/leave/dashboard`,
+      },
+    });
+    if (error) throw error;
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider
+      value={{ user, loading, signIn, signInWithGoogle, signUp, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   );
